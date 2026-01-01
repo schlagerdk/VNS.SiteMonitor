@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# VNS.KeepAlive Uninstallation Script
-# This script removes the KeepAlive service and all installed files
+# VNS.WebWatch Uninstallation Script
+# This script removes the WebWatch service and all installed files
 
 set -e
 
-INSTALL_DIR="/opt/keepalive"
-SERVICE_NAME="keepalive.service"
+INSTALL_DIR="/opt/webwatch"
+SERVICE_NAME="webwatch.service"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
 
 echo "==================================="
-echo "VNS.KeepAlive Uninstallation"
+echo "VNS.WebWatch Uninstallation"
 echo "==================================="
 echo ""
 

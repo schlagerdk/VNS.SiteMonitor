@@ -1,4 +1,4 @@
-# VNS.KeepAlive - Website Monitoring Service
+# VNS.WebWatch - Website Monitoring Service
 
 A robust Python-based monitoring service for Linux servers that monitors websites and sends email alerts on failures.
 
@@ -24,21 +24,21 @@ A robust Python-based monitoring service for Linux servers that monitors website
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/schlagerdk/VNS.KeepAlive.git
-cd VNS.KeepAlive
+git clone https://github.com/schlagerdk/VNS.WebWatch.git
+cd VNS.WebWatch
 ```
 
 ### 2. Upload to your server
 
 ```bash
-scp -r * root@SERVER:/opt/keepalive/
+scp -r * root@SERVER:/opt/webwatch/
 ```
 
 ### 3. Install on server
 
 ```bash
 ssh root@SERVER
-cd /opt/keepalive
+cd /opt/webwatch
 sudo ./install.sh
 ```
 
@@ -47,8 +47,8 @@ sudo ./install.sh
 Copy the example configuration and customize it:
 
 ```bash
-cp config.json.example /opt/keepalive/config.json
-nano /opt/keepalive/config.json
+cp config.json.example /opt/webwatch/config.json
+nano /opt/webwatch/config.json
 ```
 
 Edit email settings:
@@ -63,7 +63,7 @@ Edit email settings:
   "email": {
     "from": "your-email@domain.com",
     "to": "recipient@domain.com",
-    "subject": "KeepAlive Alert: Website Failures Detected",
+    "subject": "WebWatch Alert: Website Failures Detected",
     "priority": "high",
     "smtp": {
       "server": "smtp.domain.com",
@@ -86,8 +86,8 @@ Edit email settings:
 Copy the example configuration and customize it:
 
 ```bash
-cp sites.json.example /opt/keepalive/sites.json
-nano /opt/keepalive/sites.json
+cp sites.json.example /opt/webwatch/sites.json
+nano /opt/webwatch/sites.json
 ```
 
 Configure the sites you want to monitor:
@@ -150,43 +150,43 @@ You can also use simple strings instead of objects:
 Run a single check cycle to test:
 
 ```bash
-cd /opt/keepalive
-python3 keepalive.py --once
+cd /opt/webwatch
+python3 webwatch.py --once
 ```
 
 ### Start the service
 
 ```bash
 # Enable service to start on boot
-sudo systemctl enable keepalive
+sudo systemctl enable webwatch
 
 # Start the service
-sudo systemctl start keepalive
+sudo systemctl start webwatch
 
 # Check status
-sudo systemctl status keepalive
+sudo systemctl status webwatch
 ```
 
 ### Manage the service
 
 ```bash
 # Stop the service
-sudo systemctl stop keepalive
+sudo systemctl stop webwatch
 
 # Restart the service
-sudo systemctl restart keepalive
+sudo systemctl restart webwatch
 
 # View logs (real-time)
-sudo journalctl -u keepalive -f
+sudo journalctl -u webwatch -f
 
 # View logs (last 100 lines)
-sudo journalctl -u keepalive -n 100
+sudo journalctl -u webwatch -n 100
 ```
 
 ### View log file
 
 ```bash
-tail -f /var/log/keepalive.log
+tail -f /var/log/webwatch.log
 ```
 
 ## Configuration
@@ -239,7 +239,7 @@ You will only receive email when **failures occur**. The email contains:
 Example email (only_failures):
 
 ```
-KeepAlive Monitoring Alert - 2026-01-01 14:30:00
+WebWatch Monitoring Alert - 2026-01-01 14:30:00
 
 Detected 2 failed site(s):
 
@@ -267,7 +267,7 @@ You will receive email after **each check cycle** with complete overview. The em
 Example email (always):
 
 ```
-KeepAlive Monitoring Summary - 2026-01-01 14:30:00
+WebWatch Monitoring Summary - 2026-01-01 14:30:00
 
 ================================================================================
 Total sites checked: 25
@@ -299,7 +299,7 @@ SUCCESSFUL SITES:
 
 ```bash
 # Check systemd logs
-sudo journalctl -u keepalive -n 50
+sudo journalctl -u webwatch -n 50
 
 # Check if Python is installed
 python3 --version
@@ -337,7 +337,7 @@ For 100 websites with 300s interval:
 - Log files may contain sensitive URLs - set appropriate permissions
 - SMTP credentials are stored in plain text - use restricted file permissions:
   ```bash
-  chmod 600 /opt/keepalive/config.json
+  chmod 600 /opt/webwatch/config.json
   ```
 - Consider using environment variables for passwords
 
@@ -348,6 +348,6 @@ Free for personal and commercial use.
 ## Support
 
 For issues, check:
-1. Systemd logs: `journalctl -u keepalive -f`
-2. Application log: `/var/log/keepalive.log`
-3. Test mode: `python3 keepalive.py --once`
+1. Systemd logs: `journalctl -u webwatch -f`
+2. Application log: `/var/log/webwatch.log`
+3. Test mode: `python3 webwatch.py --once`

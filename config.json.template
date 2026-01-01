@@ -5,9 +5,9 @@
 	"verify_ssl": true,
 	"email_notification_level": "only_failures",
 	"email": {
-		"from": "keepalive@example.com",
+		"from": "webwatch@example.com",
 		"to": "admin@example.com",
-		"subject": "VNS.KeepAlive Alert: Website Failures Detected",
+		"subject": "VNS.WebWatch Alert: Website Failures Detected",
 		"priority": "high",
 		"smtp": {
 			"server": "smtp.example.com",

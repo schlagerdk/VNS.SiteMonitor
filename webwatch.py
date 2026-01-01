@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VNS.KeepAlive - Website monitoring and alerting
+VNS.WebWatch - Website monitoring and alerting
 Monitors websites for availability and sends email alerts on failures
 """
 
@@ -30,15 +30,15 @@ except ImportError:
 # Setup logging
 log_handlers = [logging.StreamHandler(sys.stdout)]
 
-# Try to use /var/log/keepalive.log if writable, otherwise use local directory
+# Try to use /var/log/webwatch.log if writable, otherwise use local directory
 try:
-    log_file = '/var/log/keepalive.log'
+    log_file = '/var/log/webwatch.log'
     # Test if we can write to /var/log
     if os.path.exists('/var/log') and os.access('/var/log', os.W_OK):
         log_handlers.append(logging.FileHandler(log_file))
     else:
         # Use local directory for logging
-        log_file = 'keepalive.log'
+        log_file = 'webwatch.log'
         log_handlers.append(logging.FileHandler(log_file))
         print(f"Note: Using local log file: {os.path.abspath(log_file)}")
 except Exception:
@@ -53,7 +53,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class KeepAliveMonitor:
+class WebWatchMonitor:
     def __init__(self, config_path: str = 'config.json', sites_path: str = 'sites.json'):
         self.config_path = Path(config_path)
         self.sites_path = Path(sites_path)
@@ -255,7 +255,7 @@ class KeepAliveMonitor:
         hostname = socket.gethostname()
 
         # Build email content
-        base_subject = email_config.get('subject', 'VNS.KeepAlive Alert: Site Failures Detected')
+        base_subject = email_config.get('subject', 'VNS.WebWatch Alert: Site Failures Detected')
         subject = f"[{hostname}] {base_subject}"
         from_email = email_config.get('from')
         to_email = email_config.get('to')
@@ -266,7 +266,7 @@ class KeepAliveMonitor:
 
         # Create email body
         body_lines = [
-            f"VNS.KeepAlive Monitoring Alert - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"VNS.WebWatch Monitoring Alert - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"Server: {hostname}",
             "",
             f"Detected {len(failed_sites)} failed site(s):",
@@ -338,9 +338,9 @@ class KeepAliveMonitor:
         total = len(successful_sites) + len(failed_sites)
         total_failures = len(failed_sites) + len(collection_errors)
         if total_failures > 0:
-            subject = f"[{hostname}] VNS.KeepAlive Report: {total_failures} Failures, {len(successful_sites)} OK (Total: {total})"
+            subject = f"[{hostname}] VNS.WebWatch Report: {total_failures} Failures, {len(successful_sites)} OK (Total: {total})"
         else:
-            subject = f"[{hostname}] VNS.KeepAlive Report: All {total} Sites OK ✓"
+            subject = f"[{hostname}] VNS.WebWatch Report: All {total} Sites OK ✓"
 
         from_email = email_config.get('from')
         to_email = email_config.get('to')
@@ -351,7 +351,7 @@ class KeepAliveMonitor:
 
         # Create email body
         body_lines = [
-            f"VNS.KeepAlive Monitoring Summary - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"VNS.WebWatch Monitoring Summary - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             f"Server: {hostname}",
             "",
             "=" * 80,
@@ -539,14 +539,14 @@ async def main():
     """Main entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(description='VNS.KeepAlive Website Monitoring Service')
+    parser = argparse.ArgumentParser(description='VNS.WebWatch Website Monitoring Service')
     parser.add_argument('--config', default='config.json', help='Path to config.json')
     parser.add_argument('--sites', default='sites.json', help='Path to sites.json')
     parser.add_argument('--once', action='store_true', help='Run once and exit (for testing)')
 
     args = parser.parse_args()
 
-    monitor = KeepAliveMonitor(args.config, args.sites)
+    monitor = WebWatchMonitor(args.config, args.sites)
 
     if args.once:
         logger.info("Running single check (--once mode)")
