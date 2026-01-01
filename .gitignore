@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Config files with credentials
+config.json
+sites.json
+
+# Deployment script with credentials
+publish.sh
+scripts/publish.sh
+
+# Build and test scripts (local development tools)
+build.sh
+test.sh
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

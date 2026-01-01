@@ -1,0 +1,22 @@
+{
+	"sites": [
+		{
+			"type": "collection",
+			"url": "https://example.com/api/sites.json",
+			"description": "Main site collection",
+			"enabled": true
+		},
+		{
+			"type": "single",
+			"url": "https://example.com",
+			"description": "Example website",
+			"enabled": true
+		},
+		{
+			"type": "single",
+			"url": "https://disabled-example.com",
+			"description": "Disabled site example",
+			"enabled": false
+		}
+	]
+}

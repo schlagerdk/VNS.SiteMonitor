@@ -1,0 +1,20 @@
+{
+	"check_interval": 300,
+	"timeout": 30,
+	"concurrent_requests": 50,
+	"verify_ssl": true,
+	"email_notification_level": "only_failures",
+	"email": {
+		"from": "keepalive@example.com",
+		"to": "admin@example.com",
+		"subject": "VNS.KeepAlive Alert: Website Failures Detected",
+		"priority": "high",
+		"smtp": {
+			"server": "smtp.example.com",
+			"port": 587,
+			"use_tls": true,
+			"username": "your-username",
+			"password": "your-password"
+		}
+	}
+}

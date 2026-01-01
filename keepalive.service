@@ -1,0 +1,21 @@
+[Unit]
+Description=VNS.KeepAlive Website Monitoring Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/keepalive
+ExecStart=/usr/bin/python3 /opt/keepalive/keepalive.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
