@@ -102,20 +102,14 @@ Configure the sites you want to monitor:
       "enabled": true
     },
     {
-      "type": "collection",
-      "url": "https://example.com/api/sites2",
-      "description": "Sites collection from API 2",
+      "type": "single",
+      "url": "https://www.example.com",
+      "description": "Example website",
       "enabled": true
     },
     {
       "type": "single",
-      "url": "https://google.com",
-      "description": "Custom site",
-      "enabled": true
-    },
-    {
-      "type": "single",
-      "url": "https://example.com",
+      "url": "https://another-example.com",
       "enabled": false
     }
   ]
