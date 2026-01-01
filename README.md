@@ -1,4 +1,4 @@
-# VNS.WebWatch - Website Monitoring Service
+# VNS.SiteMonitor - Website Monitoring Service
 
 A robust Python-based monitoring service for Linux servers that monitors websites and sends email alerts on failures.
 
@@ -24,21 +24,21 @@ A robust Python-based monitoring service for Linux servers that monitors website
 ### 1. Clone repository
 
 ```bash
-git clone https://github.com/schlagerdk/VNS.WebWatch.git
-cd VNS.WebWatch
+git clone https://github.com/schlagerdk/VNS.SiteMonitor.git
+cd VNS.SiteMonitor
 ```
 
 ### 2. Upload to your server
 
 ```bash
-scp -r * root@SERVER:/opt/webwatch/
+scp -r * root@SERVER:/opt/sitemonitor/
 ```
 
 ### 3. Install on server
 
 ```bash
 ssh root@SERVER
-cd /opt/webwatch
+cd /opt/sitemonitor
 sudo ./install.sh
 ```
 
@@ -47,8 +47,8 @@ sudo ./install.sh
 Copy the example configuration and customize it:
 
 ```bash
-cp config.json.example /opt/webwatch/config.json
-nano /opt/webwatch/config.json
+cp config.json.example /opt/sitemonitor/config.json
+nano /opt/sitemonitor/config.json
 ```
 
 Edit email settings:
@@ -63,7 +63,7 @@ Edit email settings:
   "email": {
     "from": "your-email@domain.com",
     "to": "recipient@domain.com",
-    "subject": "WebWatch Alert: Website Failures Detected",
+    "subject": "SiteMonitor Alert: Website Failures Detected",
     "priority": "high",
     "smtp": {
       "server": "smtp.domain.com",
@@ -86,8 +86,8 @@ Edit email settings:
 Copy the example configuration and customize it:
 
 ```bash
-cp sites.json.example /opt/webwatch/sites.json
-nano /opt/webwatch/sites.json
+cp sites.json.example /opt/sitemonitor/sites.json
+nano /opt/sitemonitor/sites.json
 ```
 
 Configure the sites you want to monitor:
@@ -150,43 +150,43 @@ You can also use simple strings instead of objects:
 Run a single check cycle to test:
 
 ```bash
-cd /opt/webwatch
-python3 webwatch.py --once
+cd /opt/sitemonitor
+python3 sitemonitor.py --once
 ```
 
 ### Start the service
 
 ```bash
 # Enable service to start on boot
-sudo systemctl enable webwatch
+sudo systemctl enable sitemonitor
 
 # Start the service
-sudo systemctl start webwatch
+sudo systemctl start sitemonitor
 
 # Check status
-sudo systemctl status webwatch
+sudo systemctl status sitemonitor
 ```
 
 ### Manage the service
 
 ```bash
 # Stop the service
-sudo systemctl stop webwatch
+sudo systemctl stop sitemonitor
 
 # Restart the service
-sudo systemctl restart webwatch
+sudo systemctl restart sitemonitor
 
 # View logs (real-time)
-sudo journalctl -u webwatch -f
+sudo journalctl -u sitemonitor -f
 
 # View logs (last 100 lines)
-sudo journalctl -u webwatch -n 100
+sudo journalctl -u sitemonitor -n 100
 ```
 
 ### View log file
 
 ```bash
-tail -f /var/log/webwatch.log
+tail -f /var/log/sitemonitor.log
 ```
 
 ## Configuration
@@ -239,7 +239,7 @@ You will only receive email when **failures occur**. The email contains:
 Example email (only_failures):
 
 ```
-WebWatch Monitoring Alert - 2026-01-01 14:30:00
+SiteMonitor Monitoring Alert - 2026-01-01 14:30:00
 
 Detected 2 failed site(s):
 
@@ -267,7 +267,7 @@ You will receive email after **each check cycle** with complete overview. The em
 Example email (always):
 
 ```
-WebWatch Monitoring Summary - 2026-01-01 14:30:00
+SiteMonitor Monitoring Summary - 2026-01-01 14:30:00
 
 ================================================================================
 Total sites checked: 25
@@ -299,7 +299,7 @@ SUCCESSFUL SITES:
 
 ```bash
 # Check systemd logs
-sudo journalctl -u webwatch -n 50
+sudo journalctl -u sitemonitor -n 50
 
 # Check if Python is installed
 python3 --version
@@ -337,7 +337,7 @@ For 100 websites with 300s interval:
 - Log files may contain sensitive URLs - set appropriate permissions
 - SMTP credentials are stored in plain text - use restricted file permissions:
   ```bash
-  chmod 600 /opt/webwatch/config.json
+  chmod 600 /opt/sitemonitor/config.json
   ```
 - Consider using environment variables for passwords
 
@@ -348,6 +348,6 @@ Free for personal and commercial use.
 ## Support
 
 For issues, check:
-1. Systemd logs: `journalctl -u webwatch -f`
-2. Application log: `/var/log/webwatch.log`
-3. Test mode: `python3 webwatch.py --once`
+1. Systemd logs: `journalctl -u sitemonitor -f`
+2. Application log: `/var/log/sitemonitor.log`
+3. Test mode: `python3 sitemonitor.py --once`

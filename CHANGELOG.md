@@ -1,11 +1,11 @@
 # Changelog
 
-All notable changes to VNS.WebWatch will be documented in this file.
+All notable changes to VNS.SiteMonitor will be documented in this file.
 
 ## [1.0.0] - 2026-01-01
 
 ### Added
-- Initial release of VNS.WebWatch monitoring system
+- Initial release of VNS.SiteMonitor monitoring system
 - Support for monitoring single sites and site collections
 - Email notifications for failures and summaries
 - `enabled` field in sites.json for toggling sites on/off

@@ -1,13 +1,13 @@
 [Unit]
-Description=VNS.WebWatch Website Monitoring Service
+Description=VNS.SiteMonitor Website Monitoring Service
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/opt/webwatch
-ExecStart=/usr/bin/python3 /opt/webwatch/webwatch.py
+WorkingDirectory=/opt/sitemonitor
+ExecStart=/usr/bin/python3 /opt/sitemonitor/sitemonitor.py
 Restart=always
 RestartSec=10
 StandardOutput=journal

@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# VNS.WebWatch Uninstallation Script
-# This script removes the WebWatch service and all installed files
+# VNS.SiteMonitor Uninstallation Script
+# This script removes the SiteMonitor service and all installed files
 
 set -e
 
-INSTALL_DIR="/opt/webwatch"
-SERVICE_NAME="webwatch.service"
+INSTALL_DIR="/opt/sitemonitor"
+SERVICE_NAME="sitemonitor.service"
 SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}"
 
 echo "==================================="
-echo "VNS.WebWatch Uninstallation"
+echo "VNS.SiteMonitor Uninstallation"
 echo "==================================="
 echo ""
 
