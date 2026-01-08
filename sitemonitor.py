@@ -89,39 +89,70 @@ class SiteMonitorMonitor:
             raise
 
     async def fetch_url(self, session: aiohttp.ClientSession, url: str, verify_ssl: bool = True) -> Dict[str, Any]:
-        """Fetch a single URL and return status information"""
-        try:
-            timeout = aiohttp.ClientTimeout(total=self.config.get('timeout', 30))
-            # Use SSL_CONTEXT for proper certificate verification, or False to disable
-            ssl_param = SSL_CONTEXT if verify_ssl else False
-            async with session.get(url, timeout=timeout, allow_redirects=True, ssl=ssl_param) as response:
+        """Fetch a single URL and return status information with retry logic for DNS errors"""
+        max_retries = self.config.get('max_retries', 3)
+        retry_delay = self.config.get('retry_delay', 2)
+
+        for attempt in range(max_retries):
+            try:
+                timeout = aiohttp.ClientTimeout(total=self.config.get('timeout', 30))
+                # Use SSL_CONTEXT for proper certificate verification, or False to disable
+                ssl_param = SSL_CONTEXT if verify_ssl else False
+                async with session.get(url, timeout=timeout, allow_redirects=True, ssl=ssl_param) as response:
+                    return {
+                        'url': url,
+                        'status': response.status,
+                        'success': 200 <= response.status < 300,
+                        'error': None
+                    }
+            except asyncio.TimeoutError:
+                if attempt < max_retries - 1:
+                    logger.debug(f"Timeout on {url}, retrying ({attempt + 1}/{max_retries})...")
+                    await asyncio.sleep(retry_delay)
+                    continue
                 return {
                     'url': url,
-                    'status': response.status,
-                    'success': 200 <= response.status < 300,
-                    'error': None
+                    'status': None,
+                    'success': False,
+                    'error': 'Request timeout'
                 }
-        except asyncio.TimeoutError:
-            return {
-                'url': url,
-                'status': None,
-                'success': False,
-                'error': 'Request timeout'
-            }
-        except aiohttp.ClientError as e:
-            return {
-                'url': url,
-                'status': None,
-                'success': False,
-                'error': f'Connection error: {str(e)}'
-            }
-        except Exception as e:
-            return {
-                'url': url,
-                'status': None,
-                'success': False,
-                'error': f'Unexpected error: {str(e)}'
-            }
+            except aiohttp.ClientConnectorError as e:
+                # DNS or connection errors - retry
+                error_msg = str(e)
+                if 'Name or service not known' in error_msg or 'nodename nor servname provided' in error_msg:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"DNS error on {url}, retrying ({attempt + 1}/{max_retries}): {error_msg}")
+                        await asyncio.sleep(retry_delay)
+                        continue
+                    logger.error(f"DNS error on {url} after {max_retries} attempts: {error_msg}")
+                return {
+                    'url': url,
+                    'status': None,
+                    'success': False,
+                    'error': f'Connection error: {error_msg}'
+                }
+            except aiohttp.ClientError as e:
+                return {
+                    'url': url,
+                    'status': None,
+                    'success': False,
+                    'error': f'Connection error: {str(e)}'
+                }
+            except Exception as e:
+                return {
+                    'url': url,
+                    'status': None,
+                    'success': False,
+                    'error': f'Unexpected error: {str(e)}'
+                }
+
+        # Should not reach here, but just in case
+        return {
+            'url': url,
+            'status': None,
+            'success': False,
+            'error': 'Max retries exceeded'
+        }
 
     async def fetch_site_collection(self, session: aiohttp.ClientSession, collection_url: str, verify_ssl: bool = True) -> tuple[List[str], Dict[str, Any] | None]:
         """Fetch a JSON collection of sites from a URL. Returns (urls, error_info)"""
@@ -229,7 +260,12 @@ class SiteMonitorMonitor:
     async def check_all_sites(self) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """Check all configured sites asynchronously. Returns (site_results, collection_errors)"""
         verify_ssl = self.config.get('verify_ssl', True)
-        connector = aiohttp.TCPConnector(limit=self.config.get('concurrent_requests', 50))
+        # Force new connections and disable DNS caching to avoid stale DNS issues
+        connector = aiohttp.TCPConnector(
+            limit=self.config.get('concurrent_requests', 50),
+            force_close=self.config.get('force_close', False),
+            ttl_dns_cache=self.config.get('ttl_dns_cache', 10)  # DNS cache TTL in seconds
+        )
         async with aiohttp.ClientSession(connector=connector) as session:
             # Collect all URLs
             urls, url_sources, url_descriptions, collection_errors = await self.collect_all_urls(session, verify_ssl)

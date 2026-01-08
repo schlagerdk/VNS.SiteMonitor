@@ -192,6 +192,10 @@ tail -f /var/log/sitemonitor.log
 | `check_interval` | int | 300 | Seconds between each check cycle |
 | `timeout` | int | 30 | HTTP request timeout in seconds |
 | `concurrent_requests` | int | 50 | Maximum number of concurrent requests |
+| `max_retries` | int | 3 | Number of retry attempts for failed requests (especially DNS errors) |
+| `retry_delay` | int | 2 | Delay in seconds between retry attempts |
+| `ttl_dns_cache` | int | 10 | DNS cache TTL in seconds (lower = fresher DNS lookups) |
+| `force_close` | bool | false | Force close connections after each request |
 | `email_notification_level` | string | only_failures | Email notification level: `only_failures`, `always`, or `disabled` |
 | `email.from` | string | - | Sender email address |
 | `email.to` | string/array | - | Recipient email(s) |
@@ -308,6 +312,28 @@ pip3 show aiohttp
 2. Test SMTP connection manually
 3. Check firewall rules
 4. View logs for error messages
+
+### Intermittent DNS errors ("Name or service not known")
+
+If you see errors like `Cannot connect to host example.com:443 ssl:False [Name or service not known]` but the site is actually up, this is typically caused by temporary DNS resolution failures. The monitoring tool now includes automatic retry logic:
+
+**Configuration options to help:**
+- `max_retries`: Number of retry attempts (default: 3)
+- `retry_delay`: Seconds to wait between retries (default: 2)
+- `ttl_dns_cache`: DNS cache TTL in seconds (default: 10)
+
+**Troubleshooting steps:**
+1. Check your server's DNS configuration: `cat /etc/resolv.conf`
+2. Test DNS resolution: `nslookup example.com` or `dig example.com`
+3. Consider using a more reliable DNS server (e.g., 8.8.8.8, 1.1.1.1)
+4. Increase `max_retries` to 5 if DNS issues persist
+5. Lower `ttl_dns_cache` to 5 for faster DNS updates
+
+**Common causes:**
+- Overloaded or unreliable DNS servers
+- Network connectivity issues
+- DNS rate limiting
+- Firewall blocking DNS queries
 
 ### Too many emails
 
