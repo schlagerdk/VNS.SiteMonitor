@@ -19,6 +19,7 @@ scripts/publish.sh
 # Build and test scripts (local development tools)
 build.sh
 test.sh
+release.sh
 
 # Build artifacts
 build/
