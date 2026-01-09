@@ -47,7 +47,7 @@ sudo ./install.sh
 Copy the example configuration and customize it:
 
 ```bash
-cp config.json.example /opt/sitemonitor/config.json
+cp config.json.template /opt/sitemonitor/config.json
 nano /opt/sitemonitor/config.json
 ```
 
@@ -58,6 +58,10 @@ Edit email settings:
   "check_interval": 300,
   "timeout": 30,
   "concurrent_requests": 50,
+  "max_retries": 3,
+  "retry_delay": 2,
+  "ttl_dns_cache": 10,
+  "force_close": false,
   "verify_ssl": true,
   "email_notification_level": "only_failures",
   "email": {
@@ -86,7 +90,7 @@ Edit email settings:
 Copy the example configuration and customize it:
 
 ```bash
-cp sites.json.example /opt/sitemonitor/sites.json
+cp sites.json.template /opt/sitemonitor/sites.json
 nano /opt/sitemonitor/sites.json
 ```
 
