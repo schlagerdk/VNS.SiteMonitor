@@ -156,31 +156,46 @@ class SiteMonitorMonitor:
 
     async def fetch_site_collection(self, session: aiohttp.ClientSession, collection_url: str, verify_ssl: bool = True) -> tuple[List[str], Dict[str, Any] | None]:
         """Fetch a JSON collection of sites from a URL. Returns (urls, error_info)"""
-        try:
-            timeout = aiohttp.ClientTimeout(total=self.config.get('timeout', 30))
-            # Use SSL_CONTEXT for proper certificate verification, or False to disable
-            ssl_param = SSL_CONTEXT if verify_ssl else False
-            async with session.get(collection_url, timeout=timeout, ssl=ssl_param) as response:
-                if response.status == 200:
-                    data = await response.json()
-                    # Assume the response is either a list of URLs or a dict with URLs
-                    if isinstance(data, list):
-                        return data, None
-                    elif isinstance(data, dict):
-                        # Try common keys for site lists
-                        for key in ['sites', 'urls', 'list', 'data']:
-                            if key in data and isinstance(data[key], list):
-                                return data[key], None
-                        # If it's a dict of dicts/objects, extract URLs
-                        urls = []
-                        for value in data.values():
-                            if isinstance(value, str) and value.startswith('http'):
-                                urls.append(value)
-                            elif isinstance(value, dict) and 'url' in value:
-                                urls.append(value['url'])
-                        return urls, None
-                    return [], None
-                else:
+        max_retries = self.config.get('collection_max_retries', self.config.get('max_retries', 3))
+        retry_delay = self.config.get('collection_retry_delay', self.config.get('retry_delay', 2))
+
+        for attempt in range(max_retries):
+            try:
+                timeout = aiohttp.ClientTimeout(total=self.config.get('timeout', 30))
+                # Use SSL_CONTEXT for proper certificate verification, or False to disable
+                ssl_param = SSL_CONTEXT if verify_ssl else False
+                async with session.get(collection_url, timeout=timeout, ssl=ssl_param) as response:
+                    if response.status == 200:
+                        # Accept JSON payloads even when upstream returns a non-standard content-type.
+                        data = await response.json(content_type=None)
+                        # Assume the response is either a list of URLs or a dict with URLs
+                        if isinstance(data, list):
+                            return data, None
+                        elif isinstance(data, dict):
+                            # Try common keys for site lists
+                            for key in ['sites', 'urls', 'list', 'data']:
+                                if key in data and isinstance(data[key], list):
+                                    return data[key], None
+                            # If it's a dict of dicts/objects, extract URLs
+                            urls = []
+                            for value in data.values():
+                                if isinstance(value, str) and value.startswith('http'):
+                                    urls.append(value)
+                                elif isinstance(value, dict) and 'url' in value:
+                                    urls.append(value['url'])
+                            return urls, None
+                        return [], None
+
+                    # Retry transient HTTP errors to avoid false collection alerts.
+                    if response.status in (408, 429) or response.status >= 500:
+                        if attempt < max_retries - 1:
+                            logger.warning(
+                                f"Transient HTTP {response.status} fetching {collection_url}, retrying "
+                                f"({attempt + 1}/{max_retries})..."
+                            )
+                            await asyncio.sleep(retry_delay)
+                            continue
+
                     error_info = {
                         'url': collection_url,
                         'status': response.status,
@@ -190,16 +205,57 @@ class SiteMonitorMonitor:
                     }
                     logger.error(f"Failed to fetch collection from {collection_url}: HTTP {response.status}")
                     return [], error_info
-        except Exception as e:
+
+            except asyncio.TimeoutError:
+                if attempt < max_retries - 1:
+                    logger.warning(f"Timeout fetching collection {collection_url}, retrying ({attempt + 1}/{max_retries})...")
+                    await asyncio.sleep(retry_delay)
+                    continue
+                error_text = 'Request timeout'
+            except aiohttp.ClientConnectorError as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Connection error fetching collection {collection_url}, retrying ({attempt + 1}/{max_retries}): {e}"
+                    )
+                    await asyncio.sleep(retry_delay)
+                    continue
+                error_text = f'Connection error: {str(e)}'
+            except aiohttp.ClientError as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Client error fetching collection {collection_url}, retrying ({attempt + 1}/{max_retries}): {e}"
+                    )
+                    await asyncio.sleep(retry_delay)
+                    continue
+                error_text = f'Connection error: {str(e)}'
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    logger.warning(
+                        f"Unexpected error fetching collection {collection_url}, retrying ({attempt + 1}/{max_retries}): {e}"
+                    )
+                    await asyncio.sleep(retry_delay)
+                    continue
+                error_text = f'Unexpected error: {str(e)}'
+
             error_info = {
                 'url': collection_url,
                 'status': None,
                 'success': False,
-                'error': str(e),
+                'error': error_text,
                 'is_collection': True
             }
-            logger.error(f"Error fetching collection from {collection_url}: {str(e)}")
+            logger.error(f"Error fetching collection from {collection_url}: {error_text}")
             return [], error_info
+
+        error_info = {
+            'url': collection_url,
+            'status': None,
+            'success': False,
+            'error': 'Max retries exceeded',
+            'is_collection': True
+        }
+        logger.error(f"Error fetching collection from {collection_url}: Max retries exceeded")
+        return [], error_info
 
     async def collect_all_urls(self, session: aiohttp.ClientSession, verify_ssl: bool = True) -> tuple[List[str], Dict[str, str], Dict[str, str], List[Dict[str, Any]]]:
         """Collect all URLs from sites configuration. Returns (urls, url_sources, url_descriptions, collection_errors)"""
